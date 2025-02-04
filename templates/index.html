@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Explanation App</title>
+</head>
+<body>
+    <h1>Image Explanation App</h1>
+    <p>Upload an image, and I'll describe it for you. You can also ask anything about the image.</p>
+    
+    <form action="/" method="post" enctype="multipart/form-data">
+        <input type="file" name="image" accept="image/png, image/jpeg, image/jpg" required>
+        <button type="submit">Upload Image</button>
+    </form>
+    
+    {% if description %}
+        <h2>Image Description:</h2>
+        <p>{{ description }}</p>
+    {% endif %}
+    
+    {% if description %}
+        <h2>Ask about the image:</h2>
+        <form action="/" method="post">
+            <input type="hidden" name="description" value="{{ description }}">
+            <input type="text" name="question" placeholder="Ask a question" required>
+            <button type="submit">Ask</button>
+        </form>        
+    {% endif %}
+    
+    {% if response_text %}
+        <h2>Response:</h2>
+        <p>{{ response_text }}</p>
+    {% endif %}
+    
+    {% if chat_history %}
+        <h2>Chat History:</h2>
+        <ul>
+            {% for question, answer in chat_history %}
+                <li><strong>Q:</strong> {{ question }}</li>
+                <li><strong>A:</strong> {{ answer }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</body>
+</html>
