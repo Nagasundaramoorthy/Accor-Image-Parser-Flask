@@ -19,7 +19,7 @@ genai.configure(api_key=gemini_key)
 gemini_model = genai.GenerativeModel('gemini-1.5-flash')
 
 # Configure Hugging Face embeddings and LLM
-embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+embeddings = HuggingFaceEmbeddings()
 
 llm = HuggingFaceHub(repo_id="google/flan-t5-large", model_kwargs={"temperature": 0.9, "max_length": 500})
 
