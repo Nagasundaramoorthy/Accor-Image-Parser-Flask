@@ -19,7 +19,9 @@ genai.configure(api_key=gemini_key)
 gemini_model = genai.GenerativeModel('gemini-1.5-flash')
 
 # Configure Hugging Face embeddings and LLM
-embeddings = HuggingFaceEmbeddings()
+embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2", 
+                                   model_kwargs={"device": "cpu", "torch_dtype": "auto"})
+
 llm = HuggingFaceHub(repo_id="google/flan-t5-large", model_kwargs={"temperature": 0.9, "max_length": 500})
 
 app = Flask(__name__)
@@ -92,4 +94,4 @@ def index():
     return render_template('index.html', description=description, chat_history=chat_history, response_text=response_text)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False, host="0.0.0.0", port=8000)
