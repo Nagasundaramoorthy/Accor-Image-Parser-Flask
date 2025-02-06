@@ -44,6 +44,8 @@ def index():
     description = None
     chat_history = session.get('chat_history', [])
     response_text = None
+    explanation_2 = None  # Ensure it is defined
+    output = {}  # Initialize output to avoid UnboundLocalError
 
     if request.method == 'POST':
         if 'image' in request.files:
@@ -57,19 +59,20 @@ def index():
 
         if 'question' in request.form and session.get('description'):
             user_query = request.form['question']
-            context = session['description']  # Use the stored image description as context
+            context = session['description']
             response_text = generate_response(user_query, context)
             chat_history.append((user_query, response_text))
             session['chat_history'] = chat_history
 
-        output = {
-            'description' : description,
-            'detail_description' : explanation_2,
-            'chat_history' : chat_history,
-            'resposne_text' : response_text
-        }
+    output = {
+        'description': description,
+        'detail_description': explanation_2,
+        'chat_history': chat_history,
+        'response_text': response_text
+    }
 
     return jsonify(output)
+
 
 if __name__ == '__main__':
     app.run(debug=False)
