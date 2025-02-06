@@ -1,14 +1,9 @@
-from flask import Flask, request, render_template, session
+from flask import Flask, request, session,jsonify
 from PIL import Image
 import google.generativeai as genai
 from dotenv import load_dotenv
 import os
 import io
-from langchain.chains import RetrievalQA
-from langchain.vectorstores import FAISS
-from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.llms import HuggingFaceHub
-from langchain.prompts import PromptTemplate
 
 # Load environment variables
 load_dotenv()
@@ -17,11 +12,6 @@ load_dotenv()
 gemini_key = os.getenv('GEMINI_KEY')
 genai.configure(api_key=gemini_key)
 gemini_model = genai.GenerativeModel('gemini-1.5-flash')
-
-# Configure Hugging Face embeddings and LLM
-embeddings = HuggingFaceEmbeddings()
-
-llm = HuggingFaceHub(repo_id="google/flan-t5-large", model_kwargs={"temperature": 0.9, "max_length": 500})
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Required for session management
@@ -42,27 +32,10 @@ def gemini_response_desc(img):
     ])
     return response.text
 
-# Function to set up RAG (Retrieval-Augmented Generation)
-def setup_rag(description):
-    vector_store = FAISS.from_texts([description], embeddings)
-    retriever = vector_store.as_retriever()
-
-    prompt_template = """
-    You are a knowledgeable and friendly assistant. Your task is to provide detailed, accurate, and engaging answers to the user's questions based on the context provided below.
-    
-    Context: {context}
-    Question: {question}
-    
-    Answer in a conversational tone, ensuring clarity and depth. If the question cannot be answered from the context, politely inform the user.
-    """
-    prompt = PromptTemplate(input_variables=["context", "question"], template=prompt_template)
-
-    return RetrievalQA.from_chain_type(llm=llm, retriever=retriever, chain_type_kwargs={"prompt": prompt})
-
 # Function to generate a response using Gemini
-def hybrid_response(question, context):
+def generate_response(question, context):
     response = gemini_model.generate_content([
-        f"Context: {context}\n\nAnswer the following question in detail and clear and short: {question}"
+        f"Context: {context}\n\nAnswer the following question in a detailed yet concise manner: {question}"
     ])
     return response.text
 
@@ -84,13 +57,19 @@ def index():
 
         if 'question' in request.form and session.get('description'):
             user_query = request.form['question']
-            qa_chain = setup_rag(session['description'])
-            rag_response = qa_chain.run(user_query)
-            response_text = hybrid_response(user_query, rag_response)
+            context = session['description']  # Use the stored image description as context
+            response_text = generate_response(user_query, context)
             chat_history.append((user_query, response_text))
             session['chat_history'] = chat_history
 
-    return render_template('index.html', description=description, chat_history=chat_history, response_text=response_text)
+        output = {
+            'description' : description,
+            'detail_description' : explanation_2,
+            'chat_history' : chat_history,
+            'resposne_text' : response_text
+        }
+
+    return jsonify(output)
 
 if __name__ == '__main__':
-    app.run(debug=False, host="0.0.0.0", port=8000)
+    app.run(debug=False)
