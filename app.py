@@ -1,4 +1,4 @@
-from flask import Flask, request, session,jsonify
+from flask import Flask, request, session,jsonify, render_template
 from PIL import Image
 import google.generativeai as genai
 from dotenv import load_dotenv
@@ -39,7 +39,11 @@ def generate_response(question, context):
     ])
     return response.text
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+@app.route('/response', methods=['GET', 'POST'])
 def index():
     description = None
     chat_history = session.get('chat_history', [])
@@ -75,4 +79,4 @@ def index():
 
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)
